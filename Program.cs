@@ -45,8 +45,26 @@ namespace ContactsApp
                 {
                     displayContacts();
                 }
+                else if (cmd.Equals("a"))
+                {
+                    addContact();
+                }
                 cmd = Console.ReadLine();
             }
+        }
+
+        private void addContact()
+        {
+            Console.WriteLine("Enter name:");
+            string name = Console.ReadLine();
+            Console.WriteLine("Enter phone number:");
+            string phone = Console.ReadLine();
+            Console.WriteLine("Enter email address:");
+            string email = Console.ReadLine();
+            Contact newContact = new Contact(name, phone, email);
+            // add new contact to contacts list and update csv
+            contacts.Add(newContact);
+            writeContactsCsv();
         }
 
         private void displayContacts()
@@ -75,13 +93,35 @@ namespace ContactsApp
                 }
             }
         }
+
+        private void writeContactsCsv()
+        {
+            // delete existing file... this gets around the "file cannot be accessed because currently in use" error
+            if (File.Exists(dataFileName))
+            {
+                File.Delete(dataFileName);
+            }
+            using (var writer = new StreamWriter(dataFileName))
+            {
+                // write column headers
+                string headers = "Name,Phone,Email";
+                writer.WriteLine(headers);
+                // write contacts
+                foreach (Contact c in contacts)
+                {
+                    string newLine = $"{c.Name},{c.Phone},{c.Email}";
+                    writer.WriteLine(newLine);
+                }
+            }
+            
+        }
     }
 
     public class Contact
     {
         public string Name { get; set; }
-        private string Phone { get; set; }
-        private string Email { get; set; }
+        public string Phone { get; set; }
+        public string Email { get; set; }
 
         public Contact(string name, string phone, string email)
         {
