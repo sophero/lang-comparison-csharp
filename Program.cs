@@ -28,7 +28,8 @@ namespace ContactsApp
     {
         private string dataFileName;
         private List<Contact> contacts = new List<Contact>();
-        private string prompt = "Enter d to display contacts. Enter q to quit";
+        private Contact currentContact;
+        private string prompt = "Enter d to display contacts, a to add, s to search, r to remove. Enter q to quit";
 
         public ContactsTextUI(string filename)
         {
@@ -37,7 +38,6 @@ namespace ContactsApp
 
         public void RunUI()
         {
-            Console.WriteLine(prompt);
             string cmd = "";
             while (!cmd.Equals("q"))
             {
@@ -49,6 +49,15 @@ namespace ContactsApp
                 {
                     addContact();
                 }
+                else if (cmd.Equals("r"))
+                {
+                    runRemoveContact();
+                }
+                else if (cmd.Equals("s"))
+                {
+                    runSearchContacts();
+                }
+                Console.WriteLine(prompt);
                 cmd = Console.ReadLine();
             }
         }
@@ -65,6 +74,7 @@ namespace ContactsApp
             // add new contact to contacts list and update csv
             contacts.Add(newContact);
             writeContactsCsv();
+            Console.WriteLine("Contact added.");
         }
 
         private void displayContacts()
@@ -73,6 +83,64 @@ namespace ContactsApp
             foreach (Contact c in contacts)
             {
                 Console.WriteLine(c.ToString());
+            }
+        }
+
+        private Contact searchContacts(string search)
+        {
+            // going to return first match (case-insensitive)
+            foreach (Contact c in contacts)
+            {
+                if (c.Name.ToLower().Contains(search.ToLower()))
+                {
+                    return c;
+                }
+            }
+            // if no contact found
+            return null;
+        }
+
+        private void runSearchContacts()
+        {
+            Console.WriteLine("Enter name to search:");
+            string search = Console.ReadLine();
+            Contact result;
+            result = searchContacts(search);
+            if (result == null)
+            {
+                Console.WriteLine("No contact found with name " + search);
+            } else
+            {
+                Console.WriteLine("First match with name containing " + search + ":");
+                Console.WriteLine(result.ToString());
+            }
+        }
+
+        private void removeContact(Contact contact)
+        {
+            Console.WriteLine("Are you sure you wish to remove " + contact.Name + " from your contacts? y/n");
+            string cmd = Console.ReadLine();
+            if (cmd.ToLower().Equals("y"))
+            {
+                contacts.Remove(contact);
+                writeContactsCsv();
+                Console.WriteLine("Contact removed.");
+            }
+        }
+
+        private void runRemoveContact()
+        {
+            Console.WriteLine("Enter name of contact to delete:");
+            string search = Console.ReadLine();
+            Contact result;
+            result = searchContacts(search);
+            if (result == null)
+            {
+                Console.WriteLine("No contact found with name " + search);
+            }
+            else
+            {
+                removeContact(result);
             }
         }
 
