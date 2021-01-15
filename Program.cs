@@ -29,7 +29,7 @@ namespace ContactsApp
         private string dataFileName;
         private List<Contact> contacts = new List<Contact>();
         private Contact currentContact;
-        private string prompt = "Enter d to display contacts, a to add, s to search, r to remove. Enter q to quit";
+        private string prompt = "Enter d to display contacts, a to add, s to search, r to remove, u to update. Enter q to quit";
 
         public ContactsTextUI(string filename)
         {
@@ -41,21 +41,25 @@ namespace ContactsApp
             string cmd = "";
             while (!cmd.Equals("q"))
             {
-                if (cmd.Equals("d"))
+                if (cmd.ToLower().Equals("d"))
                 {
                     displayContacts();
                 }
-                else if (cmd.Equals("a"))
+                else if (cmd.ToLower().Equals("a"))
                 {
                     addContact();
                 }
-                else if (cmd.Equals("r"))
+                else if (cmd.ToLower().Equals("r"))
                 {
                     runRemoveContact();
                 }
-                else if (cmd.Equals("s"))
+                else if (cmd.ToLower().Equals("s"))
                 {
                     runSearchContacts();
+                }
+                else if (cmd.ToLower().Equals("u"))
+                {
+                    runUpdateContact();
                 }
                 Console.WriteLine(prompt);
                 cmd = Console.ReadLine();
@@ -88,12 +92,17 @@ namespace ContactsApp
 
         private Contact searchContacts(string search)
         {
-            // going to return first match (case-insensitive)
             foreach (Contact c in contacts)
             {
                 if (c.Name.ToLower().Contains(search.ToLower()))
                 {
-                    return c;
+                    Console.WriteLine(c.ToString());
+                    Console.WriteLine("Is this the contact you are looking for? y/n");
+                    string cmd = Console.ReadLine();
+                    if (cmd.ToLower().Equals("y"))
+                    {
+                        return c;
+                    }
                 }
             }
             // if no contact found
@@ -111,7 +120,7 @@ namespace ContactsApp
                 Console.WriteLine("No contact found with name " + search);
             } else
             {
-                Console.WriteLine("First match with name containing " + search + ":");
+                Console.WriteLine("Resulting match " + search + ":");
                 Console.WriteLine(result.ToString());
             }
         }
@@ -137,11 +146,62 @@ namespace ContactsApp
             if (result == null)
             {
                 Console.WriteLine("No contact found with name " + search);
+                return;
             }
-            else
+            removeContact(result);
+        }
+
+        private void runUpdateContact()
+        {
+            Console.WriteLine("Enter name of contact to update:");
+            string search = Console.ReadLine();
+            Contact result;
+            result = searchContacts(search);
+            // if no contact found, print message and return
+            if (result == null)
             {
-                removeContact(result);
+                Console.WriteLine("No contact found for name " + search);
+                return;
             }
+            // print current contact info and run update
+            Console.WriteLine(result.ToString());
+            //Console.WriteLine("Is this the contact you wish to update? y/n");
+            //string cmd = Console.ReadLine();
+            //if (cmd.ToLower().Equals("n")) { return; }
+
+            string name = result.Name;
+            string phone = result.Phone;
+            string email = result.Email;
+
+            string cmd = "";
+            while (!cmd.ToLower().Equals("d"))
+            {
+                if (cmd.ToLower().Equals("n"))
+                {
+                    Console.WriteLine("Enter new name:");
+                    name = Console.ReadLine();
+                }
+                else if (cmd.ToLower().Equals("p"))
+                {
+                    Console.WriteLine("Enter new phone number:");
+                    phone = Console.ReadLine();
+                }
+                else if (cmd.ToLower().Equals("e"))
+                {
+                    Console.WriteLine("Enter new email address:");
+                    email = Console.ReadLine();
+                }
+                Console.WriteLine("Contact details: ");
+                Console.WriteLine(name + " " + phone + " " + email);
+                Console.WriteLine("To update Name, Phone or Email, type N, P or E. Type D when done:");
+                cmd = Console.ReadLine();
+            }
+            // update details.. does this work???
+            result.Name = name;
+            result.Phone = phone;
+            result.Email = email;
+            writeContactsCsv();
+            Console.WriteLine("Contact updated.");
         }
 
         public void ReadContactsCsv()
