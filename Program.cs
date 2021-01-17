@@ -14,11 +14,8 @@ namespace ContactsApp
             // declare name of contacts list
             string contactsFileName = "contacts.csv";
 
-            // make new um. textUI
+            // instantiate textUI class and call run UI method.
             ContactsTextUI UI = new ContactsTextUI(contactsFileName);
-
-            // where does the function to read in the csv go? ahh, fuck this is gonna be a pain in the ass.
-            UI.ReadContactsCsv();
             UI.RunUI();
         }
 
@@ -28,12 +25,12 @@ namespace ContactsApp
     {
         private string dataFileName;
         private List<Contact> contacts = new List<Contact>();
-        private Contact currentContact;
         private string prompt = "Enter d to display contacts, a to add, s to search, r to remove, u to update. Enter q to quit";
 
         public ContactsTextUI(string filename)
         {
-            this.dataFileName = filename;
+            dataFileName = filename;
+            readContactsCsv();
         }
 
         public void RunUI()
@@ -90,6 +87,7 @@ namespace ContactsApp
             }
         }
 
+        // search by contact name
         private Contact searchContacts(string search)
         {
             foreach (Contact c in contacts)
@@ -165,9 +163,6 @@ namespace ContactsApp
             }
             // print current contact info and run update
             Console.WriteLine(result.ToString());
-            //Console.WriteLine("Is this the contact you wish to update? y/n");
-            //string cmd = Console.ReadLine();
-            //if (cmd.ToLower().Equals("n")) { return; }
 
             string name = result.Name;
             string phone = result.Phone;
@@ -204,22 +199,35 @@ namespace ContactsApp
             Console.WriteLine("Contact updated.");
         }
 
-        public void ReadContactsCsv()
+        private void readContactsCsv()
         {
-            using (var reader = new StreamReader(dataFileName))
+            try
             {
-                int lineNum = 0;
-                while (!reader.EndOfStream)
+                using (var reader = new StreamReader(dataFileName))
                 {
-                    var line = reader.ReadLine();
-                    var values = line.Split(',');
-                    if (lineNum > 0)
+                    int lineNum = 0;
+                    while (!reader.EndOfStream)
                     {
-                        contacts.Add(new Contact(values[0], values[1], values[2]));
+                        var line = reader.ReadLine();
+                        var values = line.Split(',');
+                        if (lineNum > 0)
+                        {
+                            contacts.Add(new Contact(values[0], values[1], values[2]));
+                        }
+                        lineNum++;
                     }
-                    lineNum++;
                 }
             }
+            catch (FileNotFoundException e)
+            {
+                Console.WriteLine($"No file found at: " + dataFileName);
+                Console.WriteLine("Contacts list will be empty.");
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine($"File could not be opened: {e}");
+            }
+            
         }
 
         private void writeContactsCsv()
@@ -229,17 +237,24 @@ namespace ContactsApp
             {
                 File.Delete(dataFileName);
             }
-            using (var writer = new StreamWriter(dataFileName))
+            try
             {
-                // write column headers
-                string headers = "Name,Phone,Email";
-                writer.WriteLine(headers);
-                // write contacts
-                foreach (Contact c in contacts)
+                using (var writer = new StreamWriter(dataFileName))
                 {
-                    string newLine = $"{c.Name},{c.Phone},{c.Email}";
-                    writer.WriteLine(newLine);
+                    // write column headers
+                    string headers = "Name,Phone,Email";
+                    writer.WriteLine(headers);
+                    // write contacts
+                    foreach (Contact c in contacts)
+                    {
+                        string newLine = $"{c.Name},{c.Phone},{c.Email}";
+                        writer.WriteLine(newLine);
+                    }
                 }
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine($"File could not be written to: {e}");
             }
             
         }
@@ -253,9 +268,9 @@ namespace ContactsApp
 
         public Contact(string name, string phone, string email)
         {
-            this.Name = name;
-            this.Phone = phone;
-            this.Email = email;
+            Name = name;
+            Phone = phone;
+            Email = email;
         }
 
         override
